@@ -6,7 +6,7 @@ parser.add_argument("-d", "--deconstruct", type=str, help="Path to the file to d
 parser.add_argument("-t", "--train", action="store_true", help="If flag is present it will train the Markov model based on the transition table")
 args = parser.parse_args()
 
-deconstrct = Deconstructor()
+deconstrct = Deconstructor(lang="en")
 
 if args.deconstruct:
-    deconstrct.deconstruct(args.deconstruct)
+    deconstrct.syllabyze(args.deconstruct)

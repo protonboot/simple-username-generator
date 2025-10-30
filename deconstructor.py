@@ -2,8 +2,13 @@ import os
 import fitz
 import re
 import pyphen
+from collections import defaultdict
 
 class Deconstructor:
+    def __init__(self, lang):
+        self.lang = lang
+        self.dic = pyphen.Pyphen(lang=self.lang)
+
     def _extract_text(self, path: str):
         full_text = ""
         if os.path.exists(path):
@@ -22,24 +27,27 @@ class Deconstructor:
         else:
             raise ValueError("Cannot extract text: the inputted path doesn't exist.")
 
-    def deconstruct(self, path: str):
+    def _deconstruct(self, path: str):
         if os.path.exists(path):
             filename, _ = os.path.splitext(path)
             deconstructed_path = path + "_deconstructed" + ".txt"
             text = self._extract_text(path)
             normalized_text = re.findall(r"\b[a-zA-Z]+\b", text)
-            with open(deconstructed_path, "w") as file:
-                if len(normalized_text) <= 1000:
-                    update_index = 100
-                elif len(normalized_text) <= 100:
-                    update_index = 10
-                elif len(normalized_text) <= 10000:
-                    update_index = 1000
-                else:
-                    update_index = 10000
-                for i, word in enumerate(normalized_text, start=1):
-                    file.write(word + "\n")
-                    if i % update_index == 0:
-                        print(f"Wrote {i} words to file")      
+            return normalized_text
         else:
             raise ValueError("Cannot deconstruct: the inputted path doesn't exist.")
+        
+    def syllabyze(self, path: str):
+        if os.path.exists(path):
+            normalized_text = self._deconstruct(path)
+            syllable_lists = [self.dic.inserted(word).split("-") for word in normalized_text]
+
+            transitions = defaultdict(list)
+
+            for syllables in syllable_lists:
+                for i in range(len(syllables) - 1):
+                    current_syllable = syllables[i]
+                    next_syllable = syllables[i + 1]
+                    transitions[current_syllable].append(next_syllable)
+
+            return transitions
