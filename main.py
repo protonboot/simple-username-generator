@@ -1,37 +1,12 @@
-import random
+import argparse
+from deconstructor import Deconstructor
 
-consonants = "bcdfghjklmnpqrstvwxyz"
-vocals = "aeiou"
+parser = argparse.ArgumentParser(description="Readable username generator.")
+parser.add_argument("-d", "--deconstruct", type=str, help="Path to the file to deconstruct into transition table")
+parser.add_argument("-t", "--train", action="store_true", help="If flag is present it will train the Markov model based on the transition table")
+args = parser.parse_args()
 
-dump_file = "./usernames.txt"
-num_usernames = 50
+deconstrct = Deconstructor()
 
-starting_vocal = True
-username_length = 3
-
-with open("schemas.txt", "r") as schema_file:
-    schemas = schema_file.readlines()
-
-usernames = []
-
-valid_schemas = []
-if starting_vocal:
-    for schema in schemas:
-        if schema[0] == "V":
-            valid_schemas.append(schema)
-        else:
-            print(f"{schema} is not valid, skipping.")
-else:
-    valid_schemas = schemas
-
-print("Starting username generation: ")
-for i in range(num_usernames):
-    username = ""
-    schema = random.choice(valid_schemas)[:username_length]
-    for j in range(username_length):
-        if schema[j] == "V":
-            username += random.choice(vocals)
-        else:
-            username += random.choice(consonants)
-    usernames.append(username)
-    print(username)
+if args.deconstruct:
+    deconstrct.deconstruct(args.deconstruct)
