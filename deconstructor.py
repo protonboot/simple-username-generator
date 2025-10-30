@@ -2,7 +2,8 @@ import os
 import fitz
 import re
 import pyphen
-from collections import defaultdict
+from collections import defaultdict, Counter
+import json
 
 class Deconstructor:
     def __init__(self, lang):
@@ -51,3 +52,23 @@ class Deconstructor:
                     transitions[current_syllable].append(next_syllable)
 
             return transitions
+    
+    def train(self, path: str):
+        if os.path.exists(path):
+            transitions = defaultdict(list)
+            probability_table = {}
+
+            with open(path, "r") as file:
+                lines = file.read().splitlines()
+                for line in lines:
+                    k, v = line.split("->")
+                    transitions[k].append(v)
+
+            for k, v, in transitions.items():
+                counts = Counter(v)
+                total = sum(counts.values())
+                for syl, count in counts.items():
+                    probability_table[k] = {syl: count / total}
+
+            with open(os.path.dirname(path).join("probability_table.json"), "w") as file:
+                json.dump(dict(probability_table), file, indent=4)
