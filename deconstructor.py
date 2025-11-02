@@ -4,6 +4,9 @@ import re
 import pyphen
 from collections import defaultdict, Counter
 import json
+import ast
+
+import time # added for debugging cause I don't know how to debug
 
 class Deconstructor:
     def __init__(self, lang):
@@ -62,13 +65,15 @@ class Deconstructor:
                 lines = file.read().splitlines()
                 for line in lines:
                     k, v = line.split("->")
-                    transitions[k].append(v)
+                    v = ast.literal_eval(v) # turn v into a list (because it's str for some reason)
+                    for value in v:
+                        transitions[k].append(value) # append each value of v individually
 
             for k, v, in transitions.items():
                 counts = Counter(v)
                 total = sum(counts.values())
-                for syl, count in counts.items():
-                    probability_table[k] = {syl: count / total}
+                # for syl, count in counts.items() can't be outside the assignation else inside probability_table[k] will only be the last syllable with it's probability
+                probability_table[k] = {syl: count / total for syl, count in counts.items()}
 
             with open(os.path.dirname(path).join("probability_table.json"), "w") as file:
                 json.dump(dict(probability_table), file, indent=4)
